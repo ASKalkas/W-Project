@@ -3,6 +3,7 @@ const userModel = require("../Models/userModel");
 const notificationModel = require("../Models/notificationModel");
 const crypto = require("crypto");
 const { timeStamp } = require("console");
+require("dotenv").config();
 
 const chatsController = {
 	createChat: async (req, res) => {
@@ -21,18 +22,9 @@ const chatsController = {
 				selectedAgentID = agents[randomIndex]._id.toString();
 			}
 
-			const encryptionKey = crypto.randomBytes(32);
-			const IV = crypto.randomBytes(16);
-
-			const encryption = {
-				encryptionKey: encryptionKey.toString("hex"),
-				IV: IV.toString("hex"),
-			};
-
 			const newChat = new chatModel({
 				userID,
 				agentId: selectedAgentID,
-				encryption,
 			});
 
 			await newChat.save();
@@ -52,11 +44,12 @@ const chatsController = {
 			const chat = await chatModel.findById(_id);
 			const user = await userModel.findById(senderId);
 			const senderUsername = user.profile.username;
-			const { encryption } = chat;
+			const encryptionKey = process.env.ENCRYPTION_KEY;
+			const IV = process.env.IV;
 			const cipher = crypto.createCipheriv(
 				"aes-256-cbc",
-				Buffer.from(encryption.encryptionKey, "hex"),
-				Buffer.from(encryption.IV, "hex")
+				Buffer.from(encryptionKey, "hex"),
+				Buffer.from(IV, "hex")
 			);
 			const encrypted = Buffer.concat([
 				cipher.update(message, "utf-8"),
@@ -87,23 +80,24 @@ const chatsController = {
 				if (!chat) {
 					return res.status(404).json({ message: "Chat not found" });
 				}
-				const { encryption } = chat;
+				const encryptionKey = process.env.ENCRYPTION_KEY;
+				const IV = process.env.IV;
 				chat.chat.map((message) => {
-					const restored = Buffer.from(message.message, 'base64');
-          const decipher = crypto.createDecipheriv(
-            "aes-256-cbc",
-            Buffer.from(encryption.encryptionKey, "hex"),
-            Buffer.from(encryption.IV, "hex")
-          );
+					const restored = Buffer.from(message.message, "base64");
+					const decipher = crypto.createDecipheriv(
+						"aes-256-cbc",
+						Buffer.from(encryptionKey, "hex"),
+						Buffer.from(IV, "hex")
+					);
 					const decrypted = Buffer.concat([
 						decipher.update(restored),
-						decipher.final()
+						decipher.final(),
 					]);
 					message.message = decrypted.toString("utf-8");
 				});
 				return res.status(200).json({ chat });
 			}
-			const chat = await chatModel.find({}).sort({timestamp: -1});
+			const chat = await chatModel.find({}).sort({ timestamp: -1 });
 			if (!chat) {
 				return res.status(404).json({ message: "Chat not found" });
 			}

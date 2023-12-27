@@ -86,8 +86,6 @@ export default function ChatsPage() {
 			localStorage.getItem("role") === "agent"
 		) {
 			getChats();
-		} else if (localStorage.getItem("role") === "user") {
-			handleCreateChat();
 		}
 	}, []);
 
@@ -146,6 +144,11 @@ export default function ChatsPage() {
 			<div class="page-background">
 				<Container fluid>
 					<p>.</p>
+					{localStorage.getItem("role") === "user" && (
+					<Button onClick={handleCreateChat} className="navbar-buttons">
+						Create
+					</Button>
+				)}
 					<Row>
 						{chats.map((Chat, index) => (
 							<Col key={index} lg={4} md={6} sm={12}>
