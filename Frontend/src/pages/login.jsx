@@ -4,7 +4,7 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import axios from "axios";
 import { useCookies } from "react-cookie";
-let backend_url = 'http://localhost:3000/api';
+let backend_url = "http://localhost:3000/api";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -41,6 +41,7 @@ const Login = () => {
         localStorage.setItem("role", data.user.role);
         setCookie("token", data.token);
         setSuccessMessage("Login successful!");
+        setErrorMessage("");
         setTimeout(() => {
           navigate("/");
         }, 1000);
@@ -48,7 +49,7 @@ const Login = () => {
         setErrorMessage(data.message);
       }
     } catch (error) {
-      setErrorMessage(error.message);
+      setErrorMessage("Login failed!");
     }
     setInputValue({
       email: "",
@@ -58,7 +59,11 @@ const Login = () => {
 
   return (
     <div className="container mt-5">
-      <Form onSubmit={handleSubmit} className="mx-auto" style={{ width: "30%" }}>
+      <Form
+        onSubmit={handleSubmit}
+        className="mx-auto"
+        style={{ width: "30%" }}
+      >
         <h2 className="text-center mb-4">Login Account</h2>
 
         <Form.Group controlId="formEmail">
@@ -71,7 +76,7 @@ const Login = () => {
             onChange={handleOnChange}
           />
         </Form.Group>
-        <p></p> 
+        <p></p>
         <Form.Group controlId="formPassword">
           <Form.Label>Password:</Form.Label>
           <Form.Control
@@ -94,7 +99,9 @@ const Login = () => {
 
         <div className="text-center mb-2">
           {errorMessage && <span className="text-danger">{errorMessage}</span>}
-          {successMessage && <span className="text-success">{successMessage}</span>}
+          {successMessage && (
+            <span className="text-success">{successMessage}</span>
+          )}
         </div>
 
         <div className="text-center">
